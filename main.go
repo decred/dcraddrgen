@@ -292,6 +292,7 @@ func main() {
 			"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
 		fmt.Println("  -testnet \tGenerate a testnet key instead of mainnet")
+		fmt.Println("  -noseed \tGenerate a single keypair instead of a seed")
 	}
 
 	setupFlags(helpMessage, flag.CommandLine)
@@ -313,7 +314,11 @@ func main() {
 
 	// Single keypair generation.
 	if *noseed {
-		generateKeyPair(flag.Arg(0))
+		err := generateKeyPair(flag.Arg(0))
+		if err != nil {
+			fmt.Printf("Error generating key pair: %v\n", err.Error())
+			return
+		}
 		fmt.Printf("Successfully generated keypair and stored it in %v.\n",
 			flag.Arg(0))
 		fmt.Printf("Your private key is used to spend your funds. Do not " +
@@ -327,5 +332,9 @@ func main() {
 		fmt.Printf("Error generating seed: %v\n", err.Error())
 		return
 	}
-
+	fmt.Printf("Successfully generated seed and stored it in %v.\n",
+		flag.Arg(0))
+	fmt.Printf("Your seed is used to spend your funds. Do not " +
+		"reveal it to anyone. Your extended public key can be " +
+		"used to derive all your addresses. Keep it private.\n")
 }
