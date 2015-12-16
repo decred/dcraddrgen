@@ -9,6 +9,7 @@ import (
 	"errors"
 
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/decred/dcraddrgen/address"
 	"github.com/decred/dcraddrgen/base58"
 	"github.com/decred/dcraddrgen/chainhash"
 )
@@ -78,7 +79,7 @@ func DecodeWIF(wif string) (*WIF, error) {
 	// private key.
 	cksum := chainhash.HashFuncB(decoded[:decodedLen-4])
 	if !bytes.Equal(cksum[:4], decoded[decodedLen-4:]) {
-		return nil, ErrChecksumMismatch
+		return nil, address.ErrChecksumMismatch
 	}
 
 	netID := [2]byte{decoded[0], decoded[1]}

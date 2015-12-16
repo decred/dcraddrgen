@@ -2,7 +2,7 @@
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package main
+package address
 
 import (
 	"errors"
@@ -82,9 +82,10 @@ type AddressPubKeyHash struct {
 
 // NewAddressPubKeyHash returns a new AddressPubKeyHash.  pkHash must
 // be 20 bytes.
-func NewAddressPubKeyHash(pkHash []byte) (*AddressPubKeyHash, error) {
+func NewAddressPubKeyHash(pkHash []byte,
+	pubKeyHashAddrId [2]byte) (*AddressPubKeyHash, error) {
 	var addrID [2]byte
-	addrID = PubKeyHashAddrID
+	addrID = pubKeyHashAddrId
 
 	apkh, err := newAddressPubKeyHash(pkHash, addrID)
 	if err != nil {
