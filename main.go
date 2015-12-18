@@ -51,12 +51,23 @@ const InternalBranch uint32 = 1
 // Magics.
 var MainHDPrivateKeyID = [4]byte{0x02, 0xfd, 0xa4, 0xe8} // starts with dprv
 var MainHDPublicKeyID = [4]byte{0x02, 0xfd, 0xa9, 0x26}  // starts with dpub
+var PubKeyHashAddrIDMain = [2]byte{0x07, 0x3f}
 var MainHDCoinType = uint32(20)
+
 var TestHDPrivateKeyID = [4]byte{0x04, 0x35, 0x83, 0x97} // starts with tprv
 var TestHDPublicKeyID = [4]byte{0x04, 0x35, 0x87, 0xd1}  // starts with tpub
-var TestHDCoinType = uint32(11)
-var PubKeyHashAddrIDMain = [2]byte{0x07, 0x3f}
 var PubKeyHashAddrIDTest = [2]byte{0x0f, 0x21}
+var TestHDCoinType = uint32(11)
+
+var SimHDPrivateKeyID = [4]byte{0x04, 0x20, 0xb9, 0x03} // starts with sprv
+var SimHDPublicKeyID = [4]byte{0x04, 0x20, 0xbd, 0x3d}  // starts with spub
+var SimHDCoinType = uint32(115)
+var PubKeyHashAddrIDSim = [2]byte{0x0e, 0x91}
+
+var RegHDPrivateKeyID = [4]byte{0x02, 0x2d, 0xbb, 0x24} // starts with Tprv
+var RegHDPublicKeyID = [4]byte{0x02, 0x2d, 0xbf, 0x5d}  // starts with Tpub
+var RegHDCoinType = uint32(10)
+var PubKeyHashAddrIDReg = [2]byte{0x0e, 0x01}
 
 var curve = btcec.S256()
 var PrivateKeyID = PrivateKeyIDMain
@@ -67,6 +78,8 @@ var HDCoinType = MainHDCoinType
 
 // Flag arguments.
 var testnet = flag.Bool("testnet", false, "")
+var simnet = flag.Bool("simnet", false, "")
+var regtest = flag.Bool("regtest", false, "")
 var noseed = flag.Bool("noseed", false, "Generate a single keypair instead of "+
 	"an HD extended seed")
 
@@ -287,11 +300,13 @@ func generateSeed(filename string) error {
 
 func main() {
 	helpMessage := func() {
-		fmt.Println("Usage: dcraddrgen [-testnet] [-noseed] [-h] filename")
-		fmt.Println("Generate a Decred private and public key or wallet seed. " +
+		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-regtest] [-noseed] [-h] filename")
+		fmt.Println("Generate a Decred private and public key or wallet seed.  " +
 			"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
 		fmt.Println("  -testnet \tGenerate a testnet key instead of mainnet")
+		fmt.Println("  -simnet \tGenerate a simnet key instead of mainnet")
+		fmt.Println("  -regtest \tGenerate a regtest key instead of mainnet")
 		fmt.Println("  -noseed \tGenerate a single keypair instead of a seed")
 	}
 
@@ -303,13 +318,35 @@ func main() {
 		return
 	}
 
-	// Alter the globals to testnet.
+	// Alter the globals to specified network.
 	if *testnet {
+		if *simnet || *regtest {
+			fmt.Println("Error: Only specify one network.")
+			return
+		}
 		PrivateKeyID = PrivateKeyIDTest
 		PubKeyHashAddrID = PubKeyHashAddrIDTest
 		HDPrivateKeyID = TestHDPrivateKeyID
 		HDPublicKeyID = TestHDPublicKeyID
 		HDCoinType = TestHDCoinType
+	}
+	if *simnet {
+		if *regtest {
+			fmt.Println("Error: Only specify one network.")
+			return
+		}
+		PrivateKeyID = PrivateKeyIDSim
+		PubKeyHashAddrID = PubKeyHashAddrIDSim
+		HDPrivateKeyID = SimHDPrivateKeyID
+		HDPublicKeyID = SimHDPublicKeyID
+		HDCoinType = SimHDCoinType
+	}
+	if *regtest {
+		PrivateKeyID = PrivateKeyIDReg
+		PubKeyHashAddrID = PubKeyHashAddrIDReg
+		HDPrivateKeyID = RegHDPrivateKeyID
+		HDPublicKeyID = RegHDPublicKeyID
+		HDCoinType = RegHDCoinType
 	}
 
 	// Single keypair generation.

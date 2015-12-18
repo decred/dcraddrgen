@@ -17,6 +17,8 @@ import (
 
 var PrivateKeyIDMain = [2]byte{0x22, 0xde}
 var PrivateKeyIDTest = [2]byte{0x23, 0x0e}
+var PrivateKeyIDReg = [2]byte{0x0c, 0xde}
+var PrivateKeyIDSim = [2]byte{0x23, 0x07}
 
 // ErrMalformedPrivateKey describes an error where a WIF-encoded private
 // key cannot be decoded due to being improperly formatted.  This may occur

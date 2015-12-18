@@ -101,10 +101,18 @@ var MainHDCoinType = uint32(20)
 var TestHDPrivateKeyID = [4]byte{0x04, 0x35, 0x83, 0x97} // starts with tprv
 var TestHDPublicKeyID = [4]byte{0x04, 0x35, 0x87, 0xd1}  // starts with tpub
 var TestHDCoinType = uint32(11)
+var SimHDPrivateKeyID = [4]byte{0x04, 0x20, 0xb9, 0x03} // starts with sprv
+var SimHDPublicKeyID = [4]byte{0x04, 0x20, 0xbd, 0x3d}  // starts with spub
+var SimHDCoinType = uint32(115)
+var RegHDPrivateKeyID = [4]byte{0x02, 0x2d, 0xbb, 0x24} // starts with Tprv
+var RegHDPublicKeyID = [4]byte{0x02, 0x2d, 0xbf, 0x5d}  // starts with Tpub
+var RegHDCoinType = uint32(10)
 
 var hdPrivToPubKeyIDs = map[[4]byte][]byte{
 	MainHDPrivateKeyID: MainHDPublicKeyID[:],
 	TestHDPrivateKeyID: TestHDPublicKeyID[:],
+	SimHDPrivateKeyID:  SimHDPublicKeyID[:],
+	RegHDPrivateKeyID:  RegHDPublicKeyID[:],
 }
 
 // HDPrivateKeyToPublicKeyID accepts a private hierarchical deterministic
