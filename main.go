@@ -10,7 +10,8 @@ import (
 	"crypto/rand"
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/decred/dcraddrgen/address"
@@ -87,6 +88,31 @@ func setupFlags(msg func(), f *flag.FlagSet) {
 	f.Usage = msg
 }
 
+// writeNewFile writes data to a file named by filename.
+// Error is returned if the file does exist. Otherwise writeNewFile creates the file with permissions perm;
+// Based on ioutil.WriteFile, but produces an err if the file exists.
+func writeNewFile(filename string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	if err != nil {
+		return err
+	}
+	n, err := f.Write(data)
+	if err == nil && n < len(data) {
+		// There was no error, but not all the data was written, so report an error.
+		err = io.ErrShortWrite
+	}
+	if err == nil {
+		// There was an error, so close file (ignoreing any further errors) and return the error.
+		f.Close()
+		return err
+	}
+	err = f.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // generateKeyPair generates and stores a secp256k1 keypair in a file.
 func generateKeyPair(filename string) error {
 	key, err := ecdsa.GenerateKey(curve, rand.Reader)
@@ -114,11 +140,10 @@ func generateKeyPair(filename string) error {
 	buf.WriteString(privWif.String())
 	buf.WriteString("\n")
 
-	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
+	err = writeNewFile(filename, buf.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -290,7 +315,7 @@ func generateSeed(filename string) error {
 	buf.WriteString(fmt.Sprintf("%x", seed))
 	buf.WriteString("\n")
 
-	err = ioutil.WriteFile(filename, buf.Bytes(), 0644)
+	err = writeNewFile(filename, buf.Bytes(), 0644)
 	if err != nil {
 		return err
 	}
