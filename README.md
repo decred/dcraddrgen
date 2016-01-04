@@ -1,7 +1,7 @@
 dcraddrgen
 ====
 
-dcraddrgen is a simple offline address generator for decred.
+dcraddrgen is a simple offline address generator for [decred](https://decred.org/).
 
 It allows one to generate an address (along with either the private
 key or a wallet seed) without a running wallet or daemon.
