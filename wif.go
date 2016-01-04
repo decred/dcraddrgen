@@ -15,9 +15,16 @@ import (
 	"github.com/decred/dcraddrgen/chainhash"
 )
 
+// PrivateKeyIDMain is the id for mainnet privatekeys.
 var PrivateKeyIDMain = [2]byte{0x22, 0xde}
+
+// PrivateKeyIDTest is the id for simnet privatekeys.
 var PrivateKeyIDTest = [2]byte{0x23, 0x0e}
+
+// PrivateKeyIDReg is the id for regtest privatekeys.
 var PrivateKeyIDReg = [2]byte{0x0c, 0xde}
+
+// PrivateKeyIDSim is the id for simnet privatekeys.
 var PrivateKeyIDSim = [2]byte{0x23, 0x07}
 
 // ErrMalformedPrivateKey describes an error where a WIF-encoded private
@@ -49,7 +56,7 @@ type WIF struct {
 // specifies whether the address intended to be imported or exported was created
 // by serializing the public key compressed rather than uncompressed.
 func NewWIF(privKey btcec.PrivateKey) *WIF {
-	return &WIF{0, privKey, PrivateKeyID}
+	return &WIF{0, privKey, privateKeyID}
 }
 
 // DecodeWIF creates a new WIF structure by decoding the string encoding of
@@ -117,9 +124,9 @@ func (w *WIF) String() string {
 // chosen depends on the value of w.ecType.
 func (w *WIF) SerializePubKey() []byte {
 	pk := btcec.PublicKey{
-		curve,
-		w.PrivKey.PublicKey.X,
-		w.PrivKey.PublicKey.Y,
+		Curve: curve,
+		X:     w.PrivKey.PublicKey.X,
+		Y:     w.PrivKey.PublicKey.Y,
 	}
 
 	return pk.SerializeCompressed()

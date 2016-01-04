@@ -50,32 +50,69 @@ const ExternalBranch uint32 = 0
 const InternalBranch uint32 = 1
 
 // Magics.
-var MainHDPrivateKeyID = [4]byte{0x02, 0xfd, 0xa4, 0xe8} // starts with dprv
-var MainHDPublicKeyID = [4]byte{0x02, 0xfd, 0xa9, 0x26}  // starts with dpub
+
+// MainHDPrivateKeyID is the hd private key id for mainnet.
+// starts with dprv
+var MainHDPrivateKeyID = [4]byte{0x02, 0xfd, 0xa4, 0xe8}
+
+// MainHDPublicKeyID is the hd public key id for mainnet.
+// starts with dpub
+var MainHDPublicKeyID = [4]byte{0x02, 0xfd, 0xa9, 0x26}
+
+// PubKeyHashAddrIDMain is the public key hash address id for mainnet.
 var PubKeyHashAddrIDMain = [2]byte{0x07, 0x3f}
+
+// MainHDCoinType is the cointype for mainnet.
 var MainHDCoinType = uint32(20)
 
-var TestHDPrivateKeyID = [4]byte{0x04, 0x35, 0x83, 0x97} // starts with tprv
-var TestHDPublicKeyID = [4]byte{0x04, 0x35, 0x87, 0xd1}  // starts with tpub
+// TestHDPrivateKeyID is the hd private key id for testnet.
+// starts with tprv
+var TestHDPrivateKeyID = [4]byte{0x04, 0x35, 0x83, 0x97}
+
+// TestHDPublicKeyID is the hd public key id for testnet.
+// starts with tpub
+var TestHDPublicKeyID = [4]byte{0x04, 0x35, 0x87, 0xd1}
+
+// PubKeyHashAddrIDTest is the public key hash address id for testnet.
 var PubKeyHashAddrIDTest = [2]byte{0x0f, 0x21}
+
+// TestHDCoinType is the cointype for testnet.
 var TestHDCoinType = uint32(11)
 
-var SimHDPrivateKeyID = [4]byte{0x04, 0x20, 0xb9, 0x03} // starts with sprv
-var SimHDPublicKeyID = [4]byte{0x04, 0x20, 0xbd, 0x3d}  // starts with spub
-var SimHDCoinType = uint32(115)
+// SimHDPrivateKeyID is the hd private key id for simnet.
+// starts with sprv
+var SimHDPrivateKeyID = [4]byte{0x04, 0x20, 0xb9, 0x03}
+
+// SimHDPublicKeyID is the hd public key id for testnet.
+// starts with spub
+var SimHDPublicKeyID = [4]byte{0x04, 0x20, 0xbd, 0x3d}
+
+// PubKeyHashAddrIDSim is the public key hash address id for simnet.
 var PubKeyHashAddrIDSim = [2]byte{0x0e, 0x91}
 
-var RegHDPrivateKeyID = [4]byte{0x02, 0x2d, 0xbb, 0x24} // starts with Tprv
-var RegHDPublicKeyID = [4]byte{0x02, 0x2d, 0xbf, 0x5d}  // starts with Tpub
-var RegHDCoinType = uint32(10)
+// SimHDCoinType is the cointype for simnet.
+var SimHDCoinType = uint32(115)
+
+// RegHDPrivateKeyID is the hd private key id for regtest.
+// starts with Tprv
+var RegHDPrivateKeyID = [4]byte{0x02, 0x2d, 0xbb, 0x24}
+
+// RegHDPublicKeyID is the hd public key id for regtest.
+// starts with Tpub
+var RegHDPublicKeyID = [4]byte{0x02, 0x2d, 0xbf, 0x5d}
+
+// PubKeyHashAddrIDReg is the public key hash address id for regtest.
 var PubKeyHashAddrIDReg = [2]byte{0x0e, 0x01}
 
+// RegHDCoinType is the cointype for regtest.
+var RegHDCoinType = uint32(10)
+
 var curve = btcec.S256()
-var PrivateKeyID = PrivateKeyIDMain
-var PubKeyHashAddrID = PubKeyHashAddrIDMain
-var HDPrivateKeyID = MainHDPrivateKeyID
-var HDPublicKeyID = MainHDPublicKeyID
-var HDCoinType = MainHDCoinType
+var privateKeyID = PrivateKeyIDMain
+var pubKeyHashAddrID = PubKeyHashAddrIDMain
+var hdPrivateKeyID = MainHDPrivateKeyID
+var hdPublicKeyID = MainHDPublicKeyID
+var hdCoinType = MainHDCoinType
 
 // Flag arguments.
 var testnet = flag.Bool("testnet", false, "")
@@ -119,13 +156,18 @@ func generateKeyPair(filename string) error {
 	if err != nil {
 		return err
 	}
-	pub := btcec.PublicKey{curve,
-		key.PublicKey.X,
-		key.PublicKey.Y}
-	priv := btcec.PrivateKey{key.PublicKey, key.D}
+	pub := btcec.PublicKey{
+		Curve: curve,
+		X:     key.PublicKey.X,
+		Y:     key.PublicKey.Y,
+	}
+	priv := btcec.PrivateKey{
+		PublicKey: key.PublicKey,
+		D:         key.D,
+	}
 
 	addr, err := address.NewAddressPubKeyHash(Hash160(pub.SerializeCompressed()),
-		PubKeyHashAddrID)
+		pubKeyHashAddrID)
 	if err != nil {
 		return err
 	}
@@ -228,13 +270,13 @@ func generateSeed(filename string) error {
 	}
 
 	// Derive the master extended key from the seed.
-	root, err := hdkeychain.NewMaster(seed, HDPrivateKeyID)
+	root, err := hdkeychain.NewMaster(seed, hdPrivateKeyID)
 	if err != nil {
 		return err
 	}
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, HDCoinType)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, hdCoinType)
 	if err != nil {
 		return err
 	}
@@ -288,7 +330,7 @@ func generateSeed(filename string) error {
 		return err
 	}
 
-	addr, err := key.Address(PubKeyHashAddrID)
+	addr, err := key.Address(pubKeyHashAddrID)
 	if err != nil {
 		return err
 	}
@@ -349,29 +391,29 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		PrivateKeyID = PrivateKeyIDTest
-		PubKeyHashAddrID = PubKeyHashAddrIDTest
-		HDPrivateKeyID = TestHDPrivateKeyID
-		HDPublicKeyID = TestHDPublicKeyID
-		HDCoinType = TestHDCoinType
+		privateKeyID = PrivateKeyIDTest
+		pubKeyHashAddrID = PubKeyHashAddrIDTest
+		hdPrivateKeyID = TestHDPrivateKeyID
+		hdPublicKeyID = TestHDPublicKeyID
+		hdCoinType = TestHDCoinType
 	}
 	if *simnet {
 		if *regtest {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		PrivateKeyID = PrivateKeyIDSim
-		PubKeyHashAddrID = PubKeyHashAddrIDSim
-		HDPrivateKeyID = SimHDPrivateKeyID
-		HDPublicKeyID = SimHDPublicKeyID
-		HDCoinType = SimHDCoinType
+		privateKeyID = PrivateKeyIDSim
+		pubKeyHashAddrID = PubKeyHashAddrIDSim
+		hdPrivateKeyID = SimHDPrivateKeyID
+		hdPublicKeyID = SimHDPublicKeyID
+		hdCoinType = SimHDCoinType
 	}
 	if *regtest {
-		PrivateKeyID = PrivateKeyIDReg
-		PubKeyHashAddrID = PubKeyHashAddrIDReg
-		HDPrivateKeyID = RegHDPrivateKeyID
-		HDPublicKeyID = RegHDPublicKeyID
-		HDCoinType = RegHDCoinType
+		privateKeyID = PrivateKeyIDReg
+		pubKeyHashAddrID = PubKeyHashAddrIDReg
+		hdPrivateKeyID = RegHDPrivateKeyID
+		hdPublicKeyID = RegHDPublicKeyID
+		hdCoinType = RegHDCoinType
 	}
 
 	// Single keypair generation.
