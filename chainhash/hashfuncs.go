@@ -1,11 +1,11 @@
-// Copyright (c) 2015 The Decred Developers
+// Copyright (c) 2015-2016 The Decred Developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
 package chainhash
 
 import (
-	"github.com/dchest/blake256"
+	"github.com/decred/blake256"
 )
 
 // HashFunc calculates the hash of the supplied bytes.
