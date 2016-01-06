@@ -125,7 +125,7 @@ func ToBytesChecksum(s string) ([]byte, error) {
 	strSlice := strings.Split(s, " ")
 	checksum := strings.ToLower(strSlice[len(strSlice)-1])
 
-	if checksum != checksumCalc {
+	if checksum != strings.ToLower(checksumCalc) {
 		return nil, fmt.Errorf("checksum failure: got %v, expected %v",
 			checksum, checksumCalc)
 	}
