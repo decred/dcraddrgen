@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/ecdsa"
 	"crypto/rand"
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/decred/dcraddrgen/address"
@@ -115,11 +117,14 @@ var hdPublicKeyID = MainHDPublicKeyID
 var hdCoinType = MainHDCoinType
 
 // Flag arguments.
+var getHelp = flag.Bool("h", false, "Print help message")
 var testnet = flag.Bool("testnet", false, "")
 var simnet = flag.Bool("simnet", false, "")
 var regtest = flag.Bool("regtest", false, "")
 var noseed = flag.Bool("noseed", false, "Generate a single keypair instead of "+
 	"an HD extended seed")
+var verify = flag.Bool("verify", false, "Verify a seed by generating the first "+
+	"address")
 
 func setupFlags(msg func(), f *flag.FlagSet) {
 	f.Usage = msg
@@ -274,12 +279,14 @@ func generateSeed(filename string) error {
 	if err != nil {
 		return err
 	}
+	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
 	coinTypeKeyPriv, err := deriveCoinTypeKey(root, hdCoinType)
 	if err != nil {
 		return err
 	}
+	defer coinTypeKeyPriv.Zero()
 
 	// Derive the account key for the first account according to BIP0044.
 	acctKeyPriv, err := deriveAccountKey(coinTypeKeyPriv, 0)
@@ -317,6 +324,7 @@ func generateSeed(filename string) error {
 	// The next address can only be generated for accounts that have already
 	// been created.
 	acctKey := acctKeyPub
+	defer acctKey.Zero()
 
 	// Derive the appropriate branch key and ensure it is zeroed when done.
 	branchKey, err := acctKey.Child(branch)
@@ -329,10 +337,54 @@ func generateSeed(filename string) error {
 	if err != nil {
 		return err
 	}
+	defer key.Zero()
 
 	addr, err := key.Address(pubKeyHashAddrID)
 	if err != nil {
 		return err
+	}
+
+	// Require the user to write down the seed.
+	reader := bufio.NewReader(os.Stdin)
+	seedStr, err := pgpwordlist.ToStringChecksum(seed)
+	if err != nil {
+		return err
+	}
+	seedStrSplit := strings.Split(seedStr, " ")
+	fmt.Println("WRITE DOWN THE SEED GIVEN BELOW. YOU WILL NOT BE GIVEN " +
+		"ANOTHER CHANCE TO.\n")
+	fmt.Printf("Your wallet generation seed is:\n\n")
+	for i := 0; i < hdkeychain.RecommendedSeedLen+1; i++ {
+		fmt.Printf("%v ", seedStrSplit[i])
+
+		if (i+1)%6 == 0 {
+			fmt.Printf("\n")
+		}
+	}
+
+	fmt.Printf("\n\nHex: %x\n", seed)
+	fmt.Println("IMPORTANT: Keep the seed in a safe place as you\n" +
+		"will NOT be able to restore your wallet without it.")
+	fmt.Println("Please keep in mind that anyone who has access\n" +
+		"to the seed can also restore your wallet thereby\n" +
+		"giving them access to all your funds, so it is\n" +
+		"imperative that you keep it in a secure location.\n")
+
+	for {
+		fmt.Print("Once you have stored the seed in a safe \n" +
+			"and secure location, enter OK here to erase the \n" +
+			"seed and all derived keys from memory. Derived \n" +
+			"public keys and an address will be stored in the \n" +
+			"file specified (default: keys.txt): ")
+		confirmSeed, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+		confirmSeed = strings.TrimSpace(confirmSeed)
+		confirmSeed = strings.Trim(confirmSeed, `"`)
+		if confirmSeed == "OK" {
+			break
+		}
 	}
 
 	var buf bytes.Buffer
@@ -346,16 +398,9 @@ func generateSeed(filename string) error {
 	}
 	buf.WriteString(acctKeyStr)
 	buf.WriteString("\n")
-	buf.WriteString("Seed: ")
-	seedStr, err := pgpwordlist.ToStringChecksum(seed)
-	if err != nil {
-		return err
-	}
-	buf.WriteString(seedStr)
-	buf.WriteString("\n")
-	buf.WriteString("Seed hex: ")
-	buf.WriteString(fmt.Sprintf("%x", seed))
-	buf.WriteString("\n")
+
+	// Zero the seed array.
+	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
 
 	err = writeNewFile(filename, buf.Bytes(), 0644)
 	if err != nil {
@@ -365,24 +410,162 @@ func generateSeed(filename string) error {
 	return nil
 }
 
+// promptSeed is used to prompt for the wallet seed which maybe required during
+// upgrades.
+func promptSeed(seedA *[32]byte) error {
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("Enter existing wallet seed: ")
+		seedStr, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+
+		seedStrTrimmed := strings.TrimSpace(seedStr)
+
+		seed, err := pgpwordlist.ToBytesChecksum(seedStrTrimmed)
+		if err != nil || len(seed) < hdkeychain.MinSeedBytes ||
+			len(seed) > hdkeychain.MaxSeedBytes {
+			if err != nil {
+				fmt.Printf("Input error: %v\n", err.Error())
+			}
+
+			fmt.Printf("Invalid seed specified.  Must be a "+
+				"hexadecimal value that is at least %d bits and "+
+				"at most %d bits\n", hdkeychain.MinSeedBytes*8,
+				hdkeychain.MaxSeedBytes*8)
+			continue
+		}
+
+		copy(seedA[:], seed[:])
+
+		// Zero the seed slice.
+		copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
+		return nil
+	}
+}
+
+func verifySeed() error {
+	seed := new([32]byte)
+	err := promptSeed(seed)
+	if err != nil {
+		return err
+	}
+
+	// Derive the master extended key from the seed.
+	root, err := hdkeychain.NewMaster(seed[:], hdPrivateKeyID)
+	if err != nil {
+		return err
+	}
+	defer root.Zero()
+
+	// Derive the cointype key according to BIP0044.
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, hdCoinType)
+	if err != nil {
+		return err
+	}
+	defer coinTypeKeyPriv.Zero()
+
+	// Derive the account key for the first account according to BIP0044.
+	acctKeyPriv, err := deriveAccountKey(coinTypeKeyPriv, 0)
+	if err != nil {
+		// The seed is unusable if the any of the children in the
+		// required hierarchy can't be derived due to invalid child.
+		if err == hdkeychain.ErrInvalidChild {
+			return fmt.Errorf("the provided seed is unusable")
+		}
+
+		return err
+	}
+
+	// Ensure the branch keys can be derived for the provided seed according
+	// to BIP0044.
+	if err := checkBranchKeys(acctKeyPriv); err != nil {
+		// The seed is unusable if the any of the children in the
+		// required hierarchy can't be derived due to invalid child.
+		if err == hdkeychain.ErrInvalidChild {
+			return fmt.Errorf("the provided seed is unusable")
+		}
+
+		return err
+	}
+
+	// The address manager needs the public extended key for the account.
+	acctKeyPub, err := acctKeyPriv.Neuter()
+	if err != nil {
+		return fmt.Errorf("failed to convert private key for account 0")
+	}
+
+	index := uint32(0)  // First address
+	branch := uint32(0) // External
+
+	// The next address can only be generated for accounts that have already
+	// been created.
+	acctKey := acctKeyPub
+	defer acctKey.Zero()
+
+	// Derive the appropriate branch key and ensure it is zeroed when done.
+	branchKey, err := acctKey.Child(branch)
+	if err != nil {
+		return err
+	}
+	defer branchKey.Zero() // Ensure branch key is zeroed when done.
+
+	key, err := branchKey.Child(index)
+	if err != nil {
+		return err
+	}
+	defer key.Zero()
+
+	addr, err := key.Address(pubKeyHashAddrID)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("First derived address of given seed: \n%v\n",
+		addr.EncodeAddress())
+
+	// Zero the seed array.
+	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
+
+	return nil
+}
+
 func main() {
 	helpMessage := func() {
 		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-regtest] [-noseed] [-h] filename")
-		fmt.Println("Generate a Decred private and public key or wallet seed.  " +
+		fmt.Println("Generate a Decred private and public key or wallet seed. \n" +
 			"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
 		fmt.Println("  -testnet \tGenerate a testnet key instead of mainnet")
 		fmt.Println("  -simnet \tGenerate a simnet key instead of mainnet")
 		fmt.Println("  -regtest \tGenerate a regtest key instead of mainnet")
 		fmt.Println("  -noseed \tGenerate a single keypair instead of a seed")
+		fmt.Println("  -verify \tVerify a seed by generating the first address")
 	}
 
 	setupFlags(helpMessage, flag.CommandLine)
 	flag.Parse()
 
-	if flag.Arg(0) == "" {
+	if *getHelp {
 		helpMessage()
 		return
+	}
+
+	if *verify {
+		err := verifySeed()
+		if err != nil {
+			fmt.Printf("Error verifying seed: %v\n", err.Error())
+			return
+		}
+		return
+	}
+
+	var fn string
+	if flag.Arg(0) != "" {
+		fn = flag.Arg(0)
+	} else {
+		fn = "keys.txt"
 	}
 
 	// Alter the globals to specified network.
@@ -418,27 +601,26 @@ func main() {
 
 	// Single keypair generation.
 	if *noseed {
-		err := generateKeyPair(flag.Arg(0))
+		err := generateKeyPair(fn)
 		if err != nil {
 			fmt.Printf("Error generating key pair: %v\n", err.Error())
 			return
 		}
 		fmt.Printf("Successfully generated keypair and stored it in %v.\n",
-			flag.Arg(0))
+			fn)
 		fmt.Printf("Your private key is used to spend your funds. Do not " +
 			"reveal it to anyone.\n")
 		return
 	}
 
 	// Derivation of an address from an HDKeychain for use in wallet.
-	err := generateSeed(flag.Arg(0))
+	err := generateSeed(fn)
 	if err != nil {
 		fmt.Printf("Error generating seed: %v\n", err.Error())
 		return
 	}
-	fmt.Printf("Successfully generated seed and stored it in %v.\n",
-		flag.Arg(0))
-	fmt.Printf("Your seed is used to spend your funds. Do not " +
-		"reveal it to anyone. Your extended public key can be " +
-		"used to derive all your addresses. Keep it private.\n")
+	fmt.Printf("\nSuccessfully generated an extended public \n"+
+		"key and address and stored them in %v.\n", fn)
+	fmt.Printf("\nYour extended public key can be used to " +
+		"derive all your addresses. Keep it private.\n")
 }
