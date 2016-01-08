@@ -1,0 +1,2 @@
+dcraddrgen -verify
+pause
