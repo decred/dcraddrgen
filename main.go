@@ -430,8 +430,8 @@ func promptSeed(seedA *[32]byte) error {
 				fmt.Printf("Input error: %v\n", err.Error())
 			}
 
-			fmt.Printf("Invalid seed specified.  Must be a "+
-				"hexadecimal value that is at least %d bits and "+
+			fmt.Printf("Invalid seed specified.  Must be "+
+				"the words of the seed and at least %d bits and "+
 				"at most %d bits\n", hdkeychain.MinSeedBytes*8,
 				hdkeychain.MaxSeedBytes*8)
 			continue
