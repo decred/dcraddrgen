@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/btcsuite/btcd/btcec"
@@ -130,6 +131,8 @@ func setupFlags(msg func(), f *flag.FlagSet) {
 	f.Usage = msg
 }
 
+var newLine = "\n"
+
 // writeNewFile writes data to a file named by filename.
 // Error is returned if the file does exist. Otherwise writeNewFile creates the file with permissions perm;
 // Based on ioutil.WriteFile, but produces an err if the file exists.
@@ -182,10 +185,10 @@ func generateKeyPair(filename string) error {
 	var buf bytes.Buffer
 	buf.WriteString("Address: ")
 	buf.WriteString(addr.EncodeAddress())
-	buf.WriteString("\n")
+	buf.WriteString(newLine)
 	buf.WriteString("Private key: ")
 	buf.WriteString(privWif.String())
-	buf.WriteString("\n")
+	buf.WriteString(newLine)
 
 	err = writeNewFile(filename, buf.Bytes(), 0644)
 	if err != nil {
@@ -390,14 +393,14 @@ func generateSeed(filename string) error {
 	var buf bytes.Buffer
 	buf.WriteString("First address: ")
 	buf.WriteString(addr.EncodeAddress())
-	buf.WriteString("\n")
+	buf.WriteString(newLine)
 	buf.WriteString("Extended public key: ")
 	acctKeyStr, err := acctKey.String()
 	if err != nil {
 		return err
 	}
 	buf.WriteString(acctKeyStr)
-	buf.WriteString("\n")
+	buf.WriteString(newLine)
 
 	// Zero the seed array.
 	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
@@ -532,6 +535,9 @@ func verifySeed() error {
 }
 
 func main() {
+	if runtime.GOOS == "windows" {
+		newLine = "\r\n"
+	}
 	helpMessage := func() {
 		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-regtest] [-noseed] [-h] filename")
 		fmt.Println("Generate a Decred private and public key or wallet seed. \n" +
