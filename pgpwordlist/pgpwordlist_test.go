@@ -55,13 +55,13 @@ func TestChecksums(t *testing.T) {
 
 func testVectors() []Vector {
 	return []Vector{
-		Vector{
+		{
 			str: "topmost Istanbul Pluto vagabond treadmill Pacific brackish dictator goldfish Medusa afflict bravado chatter revolver Dupont midsummer stopwatch whimsical cowbell bottomless",
 			b: []byte{0xE5, 0x82, 0x94, 0xF2, 0xE9, 0xA2, 0x27, 0x48,
 				0x6E, 0x8B, 0x06, 0x1B, 0x31, 0xCC, 0x52, 0x8F, 0xD7,
 				0xFA, 0x3F, 0x19},
 		},
-		Vector{
+		{
 			str: "stairway souvenir flytrap recipe adrift upcoming artist positive spearhead Pandora spaniel stupendous tonic concurrent transit Wichita lockup visitor flagpole escapade",
 			b: []byte{0xD1, 0xD4, 0x64, 0xC0, 0x04, 0xF0, 0x0F, 0xB5,
 				0xC9, 0xA4, 0xC8, 0xD8, 0xE4, 0x33, 0xE7, 0xFB, 0x7F,
@@ -72,26 +72,26 @@ func testVectors() []Vector {
 
 func testVectorsChecksums() []Vector {
 	return []Vector{
-		Vector{
+		{
 			str: "topmost Istanbul Pluto vagabond treadmill Pacific brackish dictator goldfish Medusa afflict bravado chatter revolver Dupont midsummer stopwatch whimsical cowbell bottomless fracture",
 			b: []byte{0xE5, 0x82, 0x94, 0xF2, 0xE9, 0xA2, 0x27, 0x48,
 				0x6E, 0x8B, 0x06, 0x1B, 0x31, 0xCC, 0x52, 0x8F, 0xD7,
 				0xFA, 0x3F, 0x19},
 		},
-		Vector{
+		{
 			str: "stairway souvenir flytrap recipe adrift upcoming artist positive spearhead Pandora spaniel stupendous tonic concurrent transit Wichita lockup visitor flagpole escapade merit",
 			b: []byte{0xD1, 0xD4, 0x64, 0xC0, 0x04, 0xF0, 0x0F, 0xB5,
 				0xC9, 0xA4, 0xC8, 0xD8, 0xE4, 0x33, 0xE7, 0xFB, 0x7F,
 				0xF5, 0x62, 0x56},
 		},
-		Vector{
+		{
 			str: "tissue disbelief stairway component atlas megaton bedlamp certify tumor monument necklace fascinate tunnel fascinate dreadful armistice upshot Apollo exceed aftermath billiard sardonic vapor microscope brackish suspicious woodlark torpedo hamlet sensation assume recipe",
 			b: []byte{0xE3, 0x4C, 0xD1, 0x32, 0x12, 0x8C, 0x19, 0x29,
 				0xEC, 0x96, 0x86, 0x5C, 0xED, 0x5C, 0x4D, 0x0B, 0xF4,
 				0x0A, 0x5D, 0x02, 0x1F, 0xCE, 0xF5, 0x8D, 0x27, 0xDB,
 				0xFE, 0xE3, 0x71, 0xD2, 0x10},
 		},
-		Vector{
+		{
 			str: "aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark adroitness aardvark insurgent",
 			b: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
