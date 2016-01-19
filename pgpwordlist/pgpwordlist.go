@@ -14,6 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+// Package pgpwordlist implements conversion functions for the PGP word list.
 package pgpwordlist
 
 import (
