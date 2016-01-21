@@ -21,9 +21,6 @@ var PrivateKeyIDMain = [2]byte{0x22, 0xde}
 // PrivateKeyIDTest is the id for simnet privatekeys.
 var PrivateKeyIDTest = [2]byte{0x23, 0x0e}
 
-// PrivateKeyIDReg is the id for regtest privatekeys.
-var PrivateKeyIDReg = [2]byte{0x0c, 0xde}
-
 // PrivateKeyIDSim is the id for simnet privatekeys.
 var PrivateKeyIDSim = [2]byte{0x23, 0x07}
 

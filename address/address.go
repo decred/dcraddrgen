@@ -16,7 +16,6 @@ import (
 var PubKeyHashAddrIDMain = [2]byte{0x07, 0x3f}
 var PubKeyHashAddrIDTest = [2]byte{0x0f, 0x21}
 var PubKeyHashAddrIDSim = [2]byte{0x0e, 0x91}
-var PubKeyHashAddrIDReg = [2]byte{0x0e, 0x01}
 
 var (
 	// ErrChecksumMismatch describes an error where decoding failed due
