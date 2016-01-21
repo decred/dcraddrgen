@@ -175,7 +175,7 @@ func generateKeyPair(filename string) error {
 	buf.WriteString(privWif.String())
 	buf.WriteString(newLine)
 
-	err = writeNewFile(filename, buf.Bytes(), 0644)
+	err = writeNewFile(filename, buf.Bytes(), 0600)
 	if err != nil {
 		return err
 	}
@@ -390,7 +390,7 @@ func generateSeed(filename string) error {
 	// Zero the seed array.
 	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
 
-	err = writeNewFile(filename, buf.Bytes(), 0644)
+	err = writeNewFile(filename, buf.Bytes(), 0600)
 	if err != nil {
 		return err
 	}
