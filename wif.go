@@ -9,20 +9,11 @@ import (
 	"bytes"
 	"errors"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/decred/dcraddrgen/address"
-	"github.com/decred/dcraddrgen/base58"
-	"github.com/decred/dcraddrgen/chainhash"
+	"github.com/decred/dcrd/chaincfg/chainhash"
+	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrutil"
+	"github.com/decred/dcrutil/base58"
 )
-
-// PrivateKeyIDMain is the id for mainnet privatekeys.
-var PrivateKeyIDMain = [2]byte{0x22, 0xde}
-
-// PrivateKeyIDTest is the id for simnet privatekeys.
-var PrivateKeyIDTest = [2]byte{0x23, 0x0e}
-
-// PrivateKeyIDSim is the id for simnet privatekeys.
-var PrivateKeyIDSim = [2]byte{0x23, 0x07}
 
 // ErrMalformedPrivateKey describes an error where a WIF-encoded private
 // key cannot be decoded due to being improperly formatted.  This may occur
@@ -41,7 +32,7 @@ type WIF struct {
 	ecType int
 
 	// PrivKey is the private key being imported or exported.
-	PrivKey btcec.PrivateKey
+	PrivKey secp256k1.PrivateKey
 
 	// netID is the network identifier byte used when
 	// WIF encoding the private key.
@@ -52,8 +43,8 @@ type WIF struct {
 // as a string encoded in the Wallet Import Format.  The compress argument
 // specifies whether the address intended to be imported or exported was created
 // by serializing the public key compressed rather than uncompressed.
-func NewWIF(privKey btcec.PrivateKey) *WIF {
-	return &WIF{0, privKey, privateKeyID}
+func NewWIF(privKey secp256k1.PrivateKey) *WIF {
+	return &WIF{0, privKey, params.PrivateKeyID}
 }
 
 // DecodeWIF creates a new WIF structure by decoding the string encoding of
@@ -86,13 +77,13 @@ func DecodeWIF(wif string) (*WIF, error) {
 	// private key.
 	cksum := chainhash.HashFuncB(decoded[:decodedLen-4])
 	if !bytes.Equal(cksum[:4], decoded[decodedLen-4:]) {
-		return nil, address.ErrChecksumMismatch
+		return nil, dcrutil.ErrChecksumMismatch
 	}
 
 	netID := [2]byte{decoded[0], decoded[1]}
 
-	privKeyBytes := decoded[3 : 3+btcec.PrivKeyBytesLen]
-	privKey, _ := btcec.PrivKeyFromBytes(curve, privKeyBytes)
+	privKeyBytes := decoded[3 : 3+secp256k1.PrivKeyBytesLen]
+	privKey, _ := secp256k1.PrivKeyFromBytes(curve, privKeyBytes)
 
 	return &WIF{0, *privKey, netID}, nil
 }
@@ -120,7 +111,7 @@ func (w *WIF) String() string {
 // exported private key in compressed format.  The serialization format
 // chosen depends on the value of w.ecType.
 func (w *WIF) SerializePubKey() []byte {
-	pk := btcec.PublicKey{
+	pk := secp256k1.PublicKey{
 		Curve: curve,
 		X:     w.PrivKey.PublicKey.X,
 		Y:     w.PrivKey.PublicKey.Y,

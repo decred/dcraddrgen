@@ -9,7 +9,7 @@ import (
 	"hash"
 
 	"github.com/btcsuite/golangcrypto/ripemd160"
-	"github.com/decred/dcraddrgen/chainhash"
+	"github.com/decred/dcrd/chaincfg/chainhash"
 )
 
 // Calculate the hash of hasher over buf.

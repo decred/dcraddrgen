@@ -16,10 +16,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/decred/dcraddrgen/address"
-	"github.com/decred/dcraddrgen/hdkeychain"
-	"github.com/decred/dcraddrgen/pgpwordlist"
+	"github.com/decred/dcrd/chaincfg"
+	"github.com/decred/dcrd/chaincfg/chainec"
+	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/decred/dcrutil"
+	"github.com/decred/dcrutil/hdkeychain"
+	"github.com/decred/dcrwallet/pgpwordlist"
 )
 
 // The hierarchy described by BIP0043 is:
@@ -52,56 +54,9 @@ const ExternalBranch uint32 = 0
 // branch.
 const InternalBranch uint32 = 1
 
-// Magics.
+var curve = secp256k1.S256()
 
-// MainHDPrivateKeyID is the hd private key id for mainnet.
-// starts with dprv
-var MainHDPrivateKeyID = [4]byte{0x02, 0xfd, 0xa4, 0xe8}
-
-// MainHDPublicKeyID is the hd public key id for mainnet.
-// starts with dpub
-var MainHDPublicKeyID = [4]byte{0x02, 0xfd, 0xa9, 0x26}
-
-// PubKeyHashAddrIDMain is the public key hash address id for mainnet.
-var PubKeyHashAddrIDMain = [2]byte{0x07, 0x3f}
-
-// MainHDCoinType is the cointype for mainnet.
-var MainHDCoinType = uint32(20)
-
-// TestHDPrivateKeyID is the hd private key id for testnet.
-// starts with tprv
-var TestHDPrivateKeyID = [4]byte{0x04, 0x35, 0x83, 0x97}
-
-// TestHDPublicKeyID is the hd public key id for testnet.
-// starts with tpub
-var TestHDPublicKeyID = [4]byte{0x04, 0x35, 0x87, 0xd1}
-
-// PubKeyHashAddrIDTest is the public key hash address id for testnet.
-var PubKeyHashAddrIDTest = [2]byte{0x0f, 0x21}
-
-// TestHDCoinType is the cointype for testnet.
-var TestHDCoinType = uint32(11)
-
-// SimHDPrivateKeyID is the hd private key id for simnet.
-// starts with sprv
-var SimHDPrivateKeyID = [4]byte{0x04, 0x20, 0xb9, 0x03}
-
-// SimHDPublicKeyID is the hd public key id for testnet.
-// starts with spub
-var SimHDPublicKeyID = [4]byte{0x04, 0x20, 0xbd, 0x3d}
-
-// PubKeyHashAddrIDSim is the public key hash address id for simnet.
-var PubKeyHashAddrIDSim = [2]byte{0x0e, 0x91}
-
-// SimHDCoinType is the cointype for simnet.
-var SimHDCoinType = uint32(115)
-
-var curve = btcec.S256()
-var privateKeyID = PrivateKeyIDMain
-var pubKeyHashAddrID = PubKeyHashAddrIDMain
-var hdPrivateKeyID = MainHDPrivateKeyID
-var hdPublicKeyID = MainHDPublicKeyID
-var hdCoinType = MainHDCoinType
+var params = chaincfg.MainNetParams
 
 // Flag arguments.
 var getHelp = flag.Bool("h", false, "Print help message")
@@ -149,18 +104,18 @@ func generateKeyPair(filename string) error {
 	if err != nil {
 		return err
 	}
-	pub := btcec.PublicKey{
+	pub := secp256k1.PublicKey{
 		Curve: curve,
 		X:     key.PublicKey.X,
 		Y:     key.PublicKey.Y,
 	}
-	priv := btcec.PrivateKey{
+	priv := secp256k1.PrivateKey{
 		PublicKey: key.PublicKey,
 		D:         key.D,
 	}
 
-	addr, err := address.NewAddressPubKeyHash(Hash160(pub.SerializeCompressed()),
-		pubKeyHashAddrID)
+	addr, err := dcrutil.NewAddressPubKeyHash(Hash160(pub.SerializeCompressed()),
+		&params, chainec.ECTypeSecp256k1)
 	if err != nil {
 		return err
 	}
@@ -263,14 +218,14 @@ func generateSeed(filename string) error {
 	}
 
 	// Derive the master extended key from the seed.
-	root, err := hdkeychain.NewMaster(seed, hdPrivateKeyID)
+	root, err := hdkeychain.NewMaster(seed, &params)
 	if err != nil {
 		return err
 	}
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, hdCoinType)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
 	if err != nil {
 		return err
 	}
@@ -327,7 +282,7 @@ func generateSeed(filename string) error {
 	}
 	defer key.Zero()
 
-	addr, err := key.Address(pubKeyHashAddrID)
+	addr, err := key.Address(&params)
 	if err != nil {
 		return err
 	}
@@ -441,14 +396,14 @@ func verifySeed() error {
 	}
 
 	// Derive the master extended key from the seed.
-	root, err := hdkeychain.NewMaster(seed[:], hdPrivateKeyID)
+	root, err := hdkeychain.NewMaster(seed[:], &params)
 	if err != nil {
 		return err
 	}
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, hdCoinType)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
 	if err != nil {
 		return err
 	}
@@ -505,7 +460,7 @@ func verifySeed() error {
 	}
 	defer key.Zero()
 
-	addr, err := key.Address(pubKeyHashAddrID)
+	addr, err := key.Address(&params)
 	if err != nil {
 		return err
 	}
@@ -564,18 +519,10 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		privateKeyID = PrivateKeyIDTest
-		pubKeyHashAddrID = PubKeyHashAddrIDTest
-		hdPrivateKeyID = TestHDPrivateKeyID
-		hdPublicKeyID = TestHDPublicKeyID
-		hdCoinType = TestHDCoinType
+		params = chaincfg.TestNetParams
 	}
 	if *simnet {
-		privateKeyID = PrivateKeyIDSim
-		pubKeyHashAddrID = PubKeyHashAddrIDSim
-		hdPrivateKeyID = SimHDPrivateKeyID
-		hdPublicKeyID = SimHDPublicKeyID
-		hdCoinType = SimHDCoinType
+		params = chaincfg.SimNetParams
 	}
 
 	// Single keypair generation.
