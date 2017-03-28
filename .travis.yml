@@ -1,15 +1,15 @@
+dist: trusty
 language: go
 go:
-  - 1.5.3
-  - 1.6
+  - 1.7.x
+  - 1.8.x
 sudo: false
-before_install:
-  - gotools=golang.org/x/tools
 install:
-  - go get -d -t -v ./...
-  - go get -v $gotools/cmd/cover
-  - go get -v github.com/bradfitz/goimports
-  - go get -v github.com/golang/lint/golint
+  - go get -v github.com/Masterminds/glide
+  - glide install
+  - go install -v
+  - go get -v github.com/alecthomas/gometalinter
+  - gometalinter --install
 script:
   - export PATH=$PATH:$HOME/gopath/bin
   - ./goclean.sh
