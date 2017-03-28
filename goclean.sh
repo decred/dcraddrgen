@@ -1,38 +1,35 @@
 #!/bin/bash
 # The script does automatic checking on a Go package and its sub-packages, including:
 # 1. gofmt         (http://golang.org/cmd/gofmt/)
-# 2. goimports     (https://github.com/bradfitz/goimports)
-# 3. golint        (https://github.com/golang/lint)
-# 4. go vet        (http://golang.org/cmd/vet)
+# 2. go vet        (http://golang.org/cmd/vet)
+# 3. unconvert     (https://github.com/mdempsky/unconvert)
+# 4. race detector (http://blog.golang.org/race-detector)
 # 5. test coverage (http://blog.golang.org/cover)
 
-set -e
+# gometalinter (github.com/alecthomas/gometalinter) is used to run each each
+# static checker.
+set -ex
+
+# Make sure glide is installed and $GOPATH/bin is in your path.
+# $ go get -u github.com/Masterminds/glide
+# $ glide install
+if [ ! -x "$(type -p glide)" ]; then
+  exit 1
+fi
+
+# Make sure gometalinter is installed and $GOPATH/bin is in your path.
+# $ go get -v github.com/alecthomas/gometalinter"
+# $ gometalinter --install"
+if [ ! -x "$(type -p gometalinter)" ]; then
+  exit 1
+fi
 
 # Automatic checks
-test -z "$(gofmt -l -w .     | tee /dev/stderr)"
-test -z "$(goimports -l -w . | tee /dev/stderr)"
-test -z "$(golint .          | tee /dev/stderr)"
-go vet ./...
-env GORACE="halt_on_error=1" go test -v -race ./...
+test -z "$(gometalinter --disable-all \
+--enable=gofmt \
+--enable=vet \
+--enable=unconvert \
+--vendor \
+--deadline=10m . 2>&1 | tee /dev/stderr)"
 
-# Run test coverage on each subdirectories and merge the coverage profile.
-
-echo "mode: count" > profile.cov
-
-# Standard go tooling behavior is to ignore dirs with leading underscores.
-for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -type d);
-do
-if ls $dir/*.go &> /dev/null; then
-  go test -covermode=count -coverprofile=$dir/profile.tmp $dir
-  if [ -f $dir/profile.tmp ]; then
-    cat $dir/profile.tmp | tail -n +2 >> profile.cov
-    rm $dir/profile.tmp
-  fi
-fi
-done
-
-go tool cover -func profile.cov
-
-# To submit the test coverage result to coveralls.io,
-# use goveralls (https://github.com/mattn/goveralls)
-# goveralls -coverprofile=profile.cov -service=travis-ci
+env GORACE="halt_on_error=1" go test -short -race $(glide novendor)

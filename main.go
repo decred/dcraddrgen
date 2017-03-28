@@ -21,7 +21,7 @@ import (
 	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/decred/dcrutil"
 	"github.com/decred/dcrutil/hdkeychain"
-	"github.com/decred/dcrwallet/pgpwordlist"
+	"github.com/decred/dcrwallet/walletseed"
 )
 
 // The hierarchy described by BIP0043 is:
@@ -289,10 +289,7 @@ func generateSeed(filename string) error {
 
 	// Require the user to write down the seed.
 	reader := bufio.NewReader(os.Stdin)
-	seedStr, err := pgpwordlist.ToStringChecksum(seed)
-	if err != nil {
-		return err
-	}
+	seedStr := walletseed.EncodeMnemonic(seed)
 	seedStrSplit := strings.Split(seedStr, " ")
 	fmt.Println("WRITE DOWN THE SEED GIVEN BELOW. YOU WILL NOT BE GIVEN " +
 		"ANOTHER CHANCE TO.\n")
@@ -366,7 +363,7 @@ func promptSeed(seedA *[32]byte) error {
 
 		seedStrTrimmed := strings.TrimSpace(seedStr)
 
-		seed, err := pgpwordlist.ToBytesChecksum(seedStrTrimmed)
+		seed, err := walletseed.DecodeUserInput(seedStrTrimmed)
 		if err != nil || len(seed) < hdkeychain.MinSeedBytes ||
 			len(seed) > hdkeychain.MaxSeedBytes {
 			if err != nil {
@@ -519,7 +516,7 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		params = chaincfg.TestNetParams
+		params = chaincfg.TestNet2Params
 	}
 	if *simnet {
 		params = chaincfg.SimNetParams

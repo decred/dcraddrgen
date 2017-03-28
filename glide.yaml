@@ -1,0 +1,18 @@
+package: github.com/decred/dcraddrgen
+import:
+- package: github.com/btcsuite/golangcrypto
+  subpackages:
+  - ripemd160
+- package: github.com/decred/dcrd
+  subpackages:
+  - chaincfg
+  - chaincfg/chainec
+  - chaincfg/chainhash
+  - dcrec/secp256k1
+- package: github.com/decred/dcrutil
+  subpackages:
+  - base58
+  - hdkeychain
+- package: github.com/decred/dcrwallet
+  subpackages:
+  - walletseed

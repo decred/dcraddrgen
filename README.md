@@ -12,14 +12,66 @@ dcraddrgen is a simple offline address generator for [decred](https://decred.org
 It allows one to generate an address (along with either the private
 key or a wallet seed) without a running wallet or daemon.
 
-## Requirements
+## Installation and updating
 
-[Go](http://golang.org) 1.5 or newer.
+### Windows/Linux/BSD/POSIX - Build from source
 
-## Installation
+Building or updating from source requires the following build dependencies:
 
-```bash
-$ go get -u github.com/decred/dcraddrgen
+- **Go 1.7 or 1.8**
+
+  Installation instructions can be found here: http://golang.org/doc/install.
+  It is recommended to add `$GOPATH/bin` to your `PATH` at this point.
+
+- **Glide**
+
+  Glide is used to manage project dependencies and provide reproducible builds.
+  It is recommended to use the latest Glide release, unless a bug prevents doing
+  so.  The latest releases (for both binary and source) can be found
+  [here](https://github.com/Masterminds/glide/releases).
+
+Unfortunately, the use of `glide` prevents a handy tool such as `go get` from
+automatically downloading, building, and installing the source in a single
+command.  Instead, the latest project and dependency sources must be first
+obtained manually with `git` and `glide`, and then `go` is used to build and
+install the project.
+
+**Getting the source**:
+
+For a first time installation, the project and dependency sources can be
+obtained manually with `git` and `glide` (create directories as needed):
+
+```
+git clone https://github.com/decred/dcraddrgen $GOPATH/src/github.com/decred/dcraddrgen
+cd $GOPATH/src/github.com/decred/dcraddrgen
+glide install
+```
+
+To update an existing source tree, pull the latest changes and install the
+matching dependencies:
+
+```
+cd $GOPATH/src/github.com/decred/dcraddrgen
+git pull
+glide install
+```
+
+**Building/Installing**:
+
+The `go` tool is used to build or install (to `GOPATH`) the project.  Some
+example build instructions are provided below (all must run from the `dcraddrgen`
+project directory).
+
+To build a `dcraddrgen` executable and install it to `$GOPATH/bin/`:
+
+```
+go install
+```
+
+To build a `dcraddrgen` executable and place it in the current directory:
+
+```
+go build
 ```
 
 ## Usage
