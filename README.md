@@ -1,10 +1,8 @@
 dcraddrgen
 ====
 
-[![Build Status](https://travis-ci.org/decred/dcraddrgen.png?branch=master)]
-(https://travis-ci.org/decred/dcraddrgen)
-[![GoDoc](https://godoc.org/github.com/decred/dcraddrgen?status.png)]
-(http://godoc.org/github.com/decred/dcraddrgen)
+[![Build Status](https://travis-ci.org/decred/dcraddrgen.png?branch=master)](https://travis-ci.org/decred/dcraddrgen)
+[![GoDoc](https://godoc.org/github.com/decred/dcraddrgen?status.png)](http://godoc.org/github.com/decred/dcraddrgen)
 
 
 dcraddrgen is a simple offline address generator for [decred](https://decred.org/).
