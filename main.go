@@ -91,11 +91,7 @@ func writeNewFile(filename string, data []byte, perm os.FileMode) error {
 		f.Close()
 		return err
 	}
-	err = f.Close()
-	if err != nil {
-		return err
-	}
-	return nil
+	return f.Close()
 }
 
 // generateKeyPair generates and stores a secp256k1 keypair in a file.
@@ -120,7 +116,10 @@ func generateKeyPair(filename string) error {
 		return err
 	}
 
-	privWif := NewWIF(priv)
+	privWif, err := dcrutil.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
+	if err != nil {
+		return err
+	}
 
 	var buf bytes.Buffer
 	buf.WriteString("Address: ")
@@ -130,11 +129,7 @@ func generateKeyPair(filename string) error {
 	buf.WriteString(privWif.String())
 	buf.WriteString(newLine)
 
-	err = writeNewFile(filename, buf.Bytes(), 0600)
-	if err != nil {
-		return err
-	}
-	return nil
+	return writeNewFile(filename, buf.Bytes(), 0600)
 }
 
 // deriveCoinTypeKey derives the cointype key which can be used to derive the
@@ -342,12 +337,7 @@ func generateSeed(filename string) error {
 	// Zero the seed array.
 	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
 
-	err = writeNewFile(filename, buf.Bytes(), 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writeNewFile(filename, buf.Bytes(), 0600)
 }
 
 // promptSeed is used to prompt for the wallet seed which maybe required during
