@@ -120,7 +120,10 @@ func generateKeyPair(filename string) error {
 		return err
 	}
 
-	privWif := NewWIF(priv)
+	privWif, err := dcrutil.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
+	if err != nil {
+		return err
+	}
 
 	var buf bytes.Buffer
 	buf.WriteString("Address: ")
