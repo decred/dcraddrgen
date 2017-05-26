@@ -1,5 +1,5 @@
 hash: 6e87e4ae2a53b3118fbaa16f113df872177c284b0cb9ce7e996faa14ea1912be
-updated: 2017-03-28T09:43:06.756929015-05:00
+updated: 2017-05-26T12:33:16.52452318-04:00
 imports:
 - name: github.com/btcsuite/golangcrypto
   version: 53f62d9b43e87a6c56975cf862af7edf33a8d0df
@@ -8,7 +8,7 @@ imports:
 - name: github.com/decred/blake256
   version: a840e32d7c31fe2e0218607334cb120a683951a4
 - name: github.com/decred/dcrd
-  version: 64a414c64fd59706460f47c2aef5930a9e86dce4
+  version: e7b128a6722a6cac73d98414450abaad298433c8
   subpackages:
   - chaincfg
   - chaincfg/chainec
@@ -18,12 +18,12 @@ imports:
   - dcrec/secp256k1/schnorr
   - wire
 - name: github.com/decred/dcrutil
-  version: ee6d002bf0de123fe47a8d2b8489f75145ce746e
+  version: 0598b59926b23eee039b572a020d3daff3118c7f
   subpackages:
   - base58
   - hdkeychain
 - name: github.com/decred/dcrwallet
-  version: 0bdc7dad5b253505aed701080d382af3f9a7321d
+  version: 01458bee6f6f816fd39b37ce3d4b1098b561019e
   subpackages:
   - pgpwordlist
   - walletseed
@@ -32,7 +32,7 @@ imports:
   subpackages:
   - edwards25519
 - name: golang.org/x/crypto
-  version: 459e26527287adbc2adcc5d0d49abff9a5f315a7
+  version: 7e9105388ebff089b3f99f0ef676ea55a6da3a7e
   subpackages:
   - ripemd160
 testImports: []
