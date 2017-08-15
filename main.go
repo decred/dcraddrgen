@@ -110,8 +110,10 @@ func generateKeyPair(filename string) error {
 		D:         key.D,
 	}
 
-	addr, err := dcrutil.NewAddressPubKeyHash(Hash160(pub.SerializeCompressed()),
-		&params, chainec.ECTypeSecp256k1)
+	addr, err := dcrutil.NewAddressPubKeyHash(
+		dcrutil.Hash160(pub.SerializeCompressed()),
+		&params,
+		chainec.ECTypeSecp256k1)
 	if err != nil {
 		return err
 	}
@@ -466,7 +468,8 @@ func main() {
 		newLine = "\r\n"
 	}
 	helpMessage := func() {
-		fmt.Println("Usage: dcraddrgen [-testnet] [-simnet] [-noseed] [-h] filename")
+		fmt.Println(
+			"Usage: dcraddrgen [-testnet] [-simnet] [-noseed] [-verify] [-h] filename")
 		fmt.Println("Generate a Decred private and public key or wallet seed. \n" +
 			"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
