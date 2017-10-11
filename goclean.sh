@@ -11,10 +11,10 @@
 # static checker.
 set -ex
 
-# Make sure glide is installed and $GOPATH/bin is in your path.
-# $ go get -u github.com/Masterminds/glide
-# $ glide install
-if [ ! -x "$(type -p glide)" ]; then
+# Make sure dep is installed and $GOPATH/bin is in your path.
+# $ go get -u github.com/golang/dep/cmd/dep
+# $ dep ensure
+if [ ! -x "$(type -p dep)" ]; then
   exit 1
 fi
 
@@ -26,12 +26,12 @@ if [ ! -x "$(type -p gometalinter)" ]; then
 fi
 
 # Automatic checks
-test -z "$(gometalinter --disable-all \
+TESTDIRS=$(go list ./... | grep -v '/vendor/')
+test -z "$(gometalinter --vendor --disable-all \
 --enable=gofmt \
 --enable=vet \
 --enable=gosimple \
 --enable=unconvert \
---vendor \
---deadline=10m . 2>&1 | tee /dev/stderr)"
+--deadline=10m ./... 2>&1 | tee /dev/stderr)"
 
-env GORACE="halt_on_error=1" go test -short -race $(glide novendor)
+env GORACE="halt_on_error=1" go test -short -race $TESTDIRS
