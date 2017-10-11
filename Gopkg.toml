@@ -1,0 +1,12 @@
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/decred/dcrd"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/decred/dcrutil"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/decred/dcrwallet"

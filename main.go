@@ -22,6 +22,7 @@ import (
 	"github.com/decred/dcrutil"
 	"github.com/decred/dcrutil/hdkeychain"
 	"github.com/decred/dcrwallet/walletseed"
+	"github.com/decred/dcrwallet/wif"
 )
 
 // The hierarchy described by BIP0043 is:
@@ -118,7 +119,7 @@ func generateKeyPair(filename string) error {
 		return err
 	}
 
-	privWif, err := dcrutil.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
+	privWif, err := wif.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
 	if err != nil {
 		return err
 	}

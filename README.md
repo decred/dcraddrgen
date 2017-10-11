@@ -16,33 +16,33 @@ key or a wallet seed) without a running wallet or daemon.
 
 Building or updating from source requires the following build dependencies:
 
-- **Go 1.7 or 1.8**
+- **Go 1.8 or 1.9**
 
   Installation instructions can be found here: http://golang.org/doc/install.
   It is recommended to add `$GOPATH/bin` to your `PATH` at this point.
 
-- **Glide**
+- **Dep**
 
-  Glide is used to manage project dependencies and provide reproducible builds.
-  It is recommended to use the latest Glide release, unless a bug prevents doing
+  Dep is used to manage project dependencies and provide reproducible builds.
+  It is recommended to use the latest Dep release, unless a bug prevents doing
   so.  The latest releases (for both binary and source) can be found
-  [here](https://github.com/Masterminds/glide/releases).
+  [here](https://github.com/golang/dep/releases).
 
-Unfortunately, the use of `glide` prevents a handy tool such as `go get` from
+Unfortunately, the use of `dep` prevents a handy tool such as `go get` from
 automatically downloading, building, and installing the source in a single
 command.  Instead, the latest project and dependency sources must be first
-obtained manually with `git` and `glide`, and then `go` is used to build and
+obtained manually with `git` and `dep`, and then `go` is used to build and
 install the project.
 
 **Getting the source**:
 
 For a first time installation, the project and dependency sources can be
-obtained manually with `git` and `glide` (create directories as needed):
+obtained manually with `git` and `dep` (create directories as needed):
 
 ```
 git clone https://github.com/decred/dcraddrgen $GOPATH/src/github.com/decred/dcraddrgen
 cd $GOPATH/src/github.com/decred/dcraddrgen
-glide install
+dep ensure
 ```
 
 To update an existing source tree, pull the latest changes and install the
@@ -51,7 +51,7 @@ matching dependencies:
 ```
 cd $GOPATH/src/github.com/decred/dcraddrgen
 git pull
-glide install
+dep ensure
 ```
 
 **Building/Installing**:
