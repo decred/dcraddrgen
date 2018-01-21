@@ -75,7 +75,7 @@ go build
 ## Usage
 
 ```
-Usage: dcraddrgen [-testnet] [-simnet] [-regtest] [-noseed] [-h] filename
+Usage: dcraddrgen [-testnet] [-simnet] [-regtest] [-noseed] [-nofile] [-h] filename
 Generate a Decred private and public key or wallet seed.
 These are output to the file 'filename'.
 
@@ -84,5 +84,6 @@ These are output to the file 'filename'.
   -simnet       Generate a simnet key instead of mainnet
   -regtest      Generate a regtest key instead of mainnet
   -noseed       Generate a single keypair instead of a seed
+  -nofile		Write the key pair in stdout, not in 'filename'
   -verify 	    Verify a seed by generating the first address
 ```
