@@ -19,10 +19,9 @@ import (
 	"github.com/decred/dcrd/chaincfg"
 	"github.com/decred/dcrd/chaincfg/chainec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
-	"github.com/decred/dcrutil"
-	"github.com/decred/dcrutil/hdkeychain"
+	"github.com/decred/dcrd/dcrutil"
+	"github.com/decred/dcrd/hdkeychain"
 	"github.com/decred/dcrwallet/walletseed"
-	"github.com/decred/dcrwallet/wif"
 )
 
 // The hierarchy described by BIP0043 is:
@@ -119,7 +118,7 @@ func generateKeyPair(filename string) error {
 		return err
 	}
 
-	privWif, err := wif.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
+	privWif, err := dcrutil.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
 	if err != nil {
 		return err
 	}
@@ -330,11 +329,7 @@ func generateSeed(filename string) error {
 	buf.WriteString(addr.EncodeAddress())
 	buf.WriteString(newLine)
 	buf.WriteString("Extended public key: ")
-	acctKeyStr, err := acctKey.String()
-	if err != nil {
-		return err
-	}
-	buf.WriteString(acctKeyStr)
+	buf.WriteString(acctKey.String())
 	buf.WriteString(newLine)
 
 	// Zero the seed array.
