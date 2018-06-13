@@ -66,6 +66,7 @@ var noseed = flag.Bool("noseed", false, "Generate a single keypair instead of "+
 	"an HD extended seed")
 var verify = flag.Bool("verify", false, "Verify a seed by generating the first "+
 	"address")
+var legacy = flag.Bool("legacy", false, "Use legacy coin type (instead of SLIP0044)")
 
 func setupFlags(msg func(), f *flag.FlagSet) {
 	f.Usage = msg
@@ -206,6 +207,21 @@ func checkBranchKeys(acctKey *hdkeychain.ExtendedKey) error {
 	return err
 }
 
+// getCoinType returns the SLIP0044 or legacy coin type numer and corresponding
+// string description, depending on the -legacy parameter and given params.
+// The coin type numbers are hardcoded because they should never be changed in
+// the future, neither for "legacy" nor for "SLIP0044".
+func getCoinType(params *chaincfg.Params) (coinType uint32, coinTypeStr string) {
+	if *legacy {
+		coinType = params.LegacyCoinType
+		coinTypeStr = "legacy"
+	} else {
+		coinType = params.SLIP0044CoinType
+		coinTypeStr = "SLIP0044"
+	}
+	return
+}
+
 // generateSeed derives an address from an HDKeychain for use in wallet. It
 // outputs the seed, address, and extended public key to the file specified.
 func generateSeed(filename string) error {
@@ -222,7 +238,8 @@ func generateSeed(filename string) error {
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
+	coinType, coinTypeStr := getCoinType(&params)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, coinType)
 	if err != nil {
 		return err
 	}
@@ -325,7 +342,7 @@ func generateSeed(filename string) error {
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString("First address: ")
+	buf.WriteString(fmt.Sprintf("First address (%s coin type): ", coinTypeStr))
 	buf.WriteString(addr.EncodeAddress())
 	buf.WriteString(newLine)
 	buf.WriteString("Extended public key: ")
@@ -388,7 +405,8 @@ func verifySeed() error {
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
+	coinType, coinTypeStr := getCoinType(&params)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, coinType)
 	if err != nil {
 		return err
 	}
@@ -450,8 +468,8 @@ func verifySeed() error {
 		return err
 	}
 
-	fmt.Printf("First derived address of given seed: \n%v\n",
-		addr.EncodeAddress())
+	fmt.Printf("First derived address of given seed (%s coin type): \n%v\n",
+		coinTypeStr, addr.EncodeAddress())
 
 	// Zero the seed array.
 	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
@@ -465,7 +483,7 @@ func main() {
 	}
 	helpMessage := func() {
 		fmt.Println(
-			"Usage: dcraddrgen [-testnet] [-simnet] [-noseed] [-verify] [-h] filename")
+			"Usage: dcraddrgen [-testnet] [-simnet] [-noseed] [-verify] [-legacy] [-h] filename")
 		fmt.Println("Generate a Decred private and public key or wallet seed. \n" +
 			"These are output to the file 'filename'.\n")
 		fmt.Println("  -h \t\tPrint this message")
@@ -473,6 +491,7 @@ func main() {
 		fmt.Println("  -simnet \tGenerate a simnet key instead of mainnet")
 		fmt.Println("  -noseed \tGenerate a single keypair instead of a seed")
 		fmt.Println("  -verify \tVerify a seed by generating the first address")
+		fmt.Println("  -legacy \tUse legacy coin type (instead of SLIP0044)")
 	}
 
 	setupFlags(helpMessage, flag.CommandLine)
