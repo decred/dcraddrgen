@@ -86,8 +86,8 @@ func writeNewFile(filename string, data []byte, perm os.FileMode) error {
 		// There was no error, but not all the data was written, so report an error.
 		err = io.ErrShortWrite
 	}
-	if err == nil {
-		// There was an error, so close file (ignoreing any further errors) and return the error.
+	if err != nil {
+		// There was an error, so close file (ignoring any further errors) and return the error.
 		f.Close()
 		return err
 	}
