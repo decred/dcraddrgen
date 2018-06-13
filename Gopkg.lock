@@ -4,48 +4,59 @@
 [[projects]]
   branch = "master"
   name = "github.com/agl/ed25519"
-  packages = [".","edwards25519"]
+  packages = [
+    ".",
+    "edwards25519"
+  ]
   revision = "5312a61534124124185d41f09206b9fef1d88403"
 
 [[projects]]
-  branch = "master"
   name = "github.com/dchest/blake256"
   packages = ["."]
   revision = "dee3fe6eb0e98dc774a94fc231f85baf7c29d360"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/decred/base58"
   packages = ["."]
-  revision = "b3520e187fa8ebe65eb74245408cf4b83e6a65d3"
+  revision = "56c501706f00d9e1cfacee19a27117e12da24734"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/decred/dcrd"
-  packages = ["chaincfg","chaincfg/chainec","chaincfg/chainhash","dcrec/edwards","dcrec/secp256k1","dcrec/secp256k1/schnorr","wire"]
-  revision = "50c2884646bba473eadf8b91b0bad29770ef0553"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/decred/dcrutil"
-  packages = [".","hdkeychain"]
-  revision = "ad851fbca8d46415507644ed1d6ce7746d155c6f"
+  packages = [
+    "chaincfg",
+    "chaincfg/chainec",
+    "chaincfg/chainhash",
+    "dcrec/edwards",
+    "dcrec/secp256k1",
+    "dcrec/secp256k1/schnorr",
+    "dcrutil",
+    "hdkeychain",
+    "wire"
+  ]
+  revision = "a235b830a8de4519d3e631ad5e8be06a709ef020"
 
 [[projects]]
   branch = "master"
   name = "github.com/decred/dcrwallet"
-  packages = ["pgpwordlist","walletseed","wif"]
-  revision = "b658d314b6cf54fb05b286d3795c2ab360e0f8c4"
+  packages = [
+    "errors",
+    "pgpwordlist",
+    "walletseed"
+  ]
+  revision = "65504e99da301e230949c1a1e1aa170613128f38"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ripemd160"]
-  revision = "9419663f5a44be8b34ca85f08abc5fe1be11f8a3"
+  revision = "8ac0e0d97ce45cd83d1d7243c060cb8461dda5e9"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a09755860201042638726928043741f6e983648eed30fd270fda8b1a579c2df4"
+  inputs-digest = "c5779b96ef29fc9d65a5547618317fc4f6095559f673f73d72bc5288f20ee073"
   solver-name = "gps-cdcl"
   solver-version = 1
