@@ -77,7 +77,7 @@ var newLine = "\n"
 // Error is returned if the file does exist. Otherwise writeNewFile creates the file with permissions perm;
 // Based on ioutil.WriteFile, but produces an err if the file exists.
 func writeNewFile(filename string, data []byte, perm os.FileMode) error {
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_EXCL, perm)
+	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, perm)
 	if err != nil {
 		return err
 	}
