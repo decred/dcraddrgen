@@ -16,23 +16,10 @@ key or a wallet seed) without a running wallet or daemon.
 
 Building or updating from source requires the following build dependencies:
 
-- **Go 1.8 or 1.9**
+- **Go 1.11**
 
   Installation instructions can be found here: http://golang.org/doc/install.
   It is recommended to add `$GOPATH/bin` to your `PATH` at this point.
-
-- **Dep**
-
-  Dep is used to manage project dependencies and provide reproducible builds.
-  It is recommended to use the latest Dep release, unless a bug prevents doing
-  so.  The latest releases (for both binary and source) can be found
-  [here](https://github.com/golang/dep/releases).
-
-Unfortunately, the use of `dep` prevents a handy tool such as `go get` from
-automatically downloading, building, and installing the source in a single
-command.  Instead, the latest project and dependency sources must be first
-obtained manually with `git` and `dep`, and then `go` is used to build and
-install the project.
 
 **Getting the source**:
 
@@ -42,7 +29,6 @@ obtained manually with `git` and `dep` (create directories as needed):
 ```
 git clone https://github.com/decred/dcraddrgen $GOPATH/src/github.com/decred/dcraddrgen
 cd $GOPATH/src/github.com/decred/dcraddrgen
-dep ensure
 ```
 
 To update an existing source tree, pull the latest changes and install the
@@ -51,7 +37,6 @@ matching dependencies:
 ```
 cd $GOPATH/src/github.com/decred/dcraddrgen
 git pull
-dep ensure
 ```
 
 **Building/Installing**:

@@ -17,7 +17,7 @@ import (
 	"strings"
 
 	"github.com/decred/dcrd/chaincfg"
-	"github.com/decred/dcrd/chaincfg/chainec"
+	"github.com/decred/dcrd/dcrec"
 	"github.com/decred/dcrd/dcrec/secp256k1"
 	"github.com/decred/dcrd/dcrutil"
 	"github.com/decred/dcrd/hdkeychain"
@@ -113,12 +113,12 @@ func generateKeyPair(filename string) error {
 	addr, err := dcrutil.NewAddressPubKeyHash(
 		dcrutil.Hash160(pub.SerializeCompressed()),
 		&params,
-		chainec.ECTypeSecp256k1)
+		dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
 
-	privWif, err := dcrutil.NewWIF(priv, &params, chainec.ECTypeSecp256k1)
+	privWif, err := dcrutil.NewWIF(priv, &params, dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func generateSeed(filename string) error {
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.SLIP0044CoinType)
 	if err != nil {
 		return err
 	}
@@ -388,7 +388,7 @@ func verifySeed() error {
 	defer root.Zero()
 
 	// Derive the cointype key according to BIP0044.
-	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.HDCoinType)
+	coinTypeKeyPriv, err := deriveCoinTypeKey(root, params.SLIP0044CoinType)
 	if err != nil {
 		return err
 	}
@@ -505,7 +505,7 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		params = chaincfg.TestNet2Params
+		params = chaincfg.TestNet3Params
 	}
 	if *simnet {
 		params = chaincfg.SimNetParams
