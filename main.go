@@ -66,6 +66,7 @@ var noseed = flag.Bool("noseed", false, "Generate a single keypair instead of "+
 	"an HD extended seed")
 var verify = flag.Bool("verify", false, "Verify a seed by generating the first "+
 	"address")
+var noFile = flag.Bool("nofile", false, "Write the key pair in stdout, not in 'filename'")
 
 func setupFlags(msg func(), f *flag.FlagSet) {
 	f.Usage = msg
@@ -94,8 +95,8 @@ func writeNewFile(filename string, data []byte, perm os.FileMode) error {
 	return f.Close()
 }
 
-// generateKeyPair generates and stores a secp256k1 keypair in a file.
-func generateKeyPair(filename string) error {
+// generateKeyPair generates and stores a secp256k1 keypair in a file or writes to stdout.
+func generateKeyPair(writeToFile bool, filename string) error {
 	key, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {
 		return err
@@ -123,15 +124,21 @@ func generateKeyPair(filename string) error {
 		return err
 	}
 
-	var buf bytes.Buffer
-	buf.WriteString("Address: ")
-	buf.WriteString(addr.EncodeAddress())
-	buf.WriteString(newLine)
-	buf.WriteString("Private key: ")
-	buf.WriteString(privWif.String())
-	buf.WriteString(newLine)
+	if writeToFile {
+		var buf bytes.Buffer
+		buf.WriteString("Address: ")
+		buf.WriteString(addr.EncodeAddress())
+		buf.WriteString(newLine)
+		buf.WriteString("Private key: ")
+		buf.WriteString(privWif.String())
+		buf.WriteString(newLine)
 
-	return writeNewFile(filename, buf.Bytes(), 0600)
+		return writeNewFile(filename, buf.Bytes(), 0600)
+	} else {
+		fmt.Println("Address: ", addr.EncodeAddress())
+		fmt.Println("Private key: ", privWif.String())
+		return nil
+	}
 }
 
 // deriveCoinTypeKey derives the cointype key which can be used to derive the
@@ -472,6 +479,7 @@ func main() {
 		fmt.Println("  -testnet \tGenerate a testnet key instead of mainnet")
 		fmt.Println("  -simnet \tGenerate a simnet key instead of mainnet")
 		fmt.Println("  -noseed \tGenerate a single keypair instead of a seed")
+		fmt.Println("  -nofile \tWrite the key pair in stdout, not in 'filename'")
 		fmt.Println("  -verify \tVerify a seed by generating the first address")
 	}
 
@@ -513,15 +521,17 @@ func main() {
 
 	// Single keypair generation.
 	if *noseed {
-		err := generateKeyPair(fn)
+		err := generateKeyPair(!*noFile, fn)
 		if err != nil {
 			fmt.Printf("Error generating key pair: %v\n", err.Error())
 			return
 		}
-		fmt.Printf("Successfully generated keypair and stored it in %v.\n",
-			fn)
-		fmt.Printf("Your private key is used to spend your funds. Do not " +
-			"reveal it to anyone.\n")
+		if !*noFile {
+			fmt.Printf("Successfully generated keypair and stored it in %v.\n",
+				fn)
+			fmt.Printf("Your private key is used to spend your funds. Do not " +
+				"reveal it to anyone.\n")
+		}
 		return
 	}
 
