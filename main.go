@@ -7,8 +7,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/rand"
 	"flag"
 	"fmt"
 	"io"
@@ -16,12 +14,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/decred/dcrd/chaincfg"
+	"decred.org/dcrwallet/walletseed"
+	"github.com/decred/dcrd/chaincfg/v3"
 	"github.com/decred/dcrd/dcrec"
-	"github.com/decred/dcrd/dcrec/secp256k1"
-	"github.com/decred/dcrd/dcrutil"
-	"github.com/decred/dcrd/hdkeychain"
-	"github.com/decred/dcrwallet/walletseed"
+	"github.com/decred/dcrd/dcrec/secp256k1/v3"
+	"github.com/decred/dcrd/dcrutil/v3"
+	"github.com/decred/dcrd/hdkeychain/v3"
 )
 
 // The hierarchy described by BIP0043 is:
@@ -54,9 +52,7 @@ const ExternalBranch uint32 = 0
 // branch.
 const InternalBranch uint32 = 1
 
-var curve = secp256k1.S256()
-
-var params = chaincfg.MainNetParams
+var params = chaincfg.MainNetParams()
 
 // Flag arguments.
 var getHelp = flag.Bool("h", false, "Print help message")
@@ -96,36 +92,28 @@ func writeNewFile(filename string, data []byte, perm os.FileMode) error {
 
 // generateKeyPair generates and stores a secp256k1 keypair in a file.
 func generateKeyPair(filename string) error {
-	key, err := ecdsa.GenerateKey(curve, rand.Reader)
+	priv, err := secp256k1.GeneratePrivateKey()
 	if err != nil {
 		return err
 	}
-	pub := secp256k1.PublicKey{
-		Curve: curve,
-		X:     key.PublicKey.X,
-		Y:     key.PublicKey.Y,
-	}
-	priv := secp256k1.PrivateKey{
-		PublicKey: key.PublicKey,
-		D:         key.D,
-	}
+	pub := priv.PubKey()
 
 	addr, err := dcrutil.NewAddressPubKeyHash(
 		dcrutil.Hash160(pub.SerializeCompressed()),
-		&params,
+		params,
 		dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
 
-	privWif, err := dcrutil.NewWIF(priv, &params, dcrec.STEcdsaSecp256k1)
+	privWif, err := dcrutil.NewWIF(priv.Serialize(), params.PrivateKeyID, dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
 
 	var buf bytes.Buffer
 	buf.WriteString("Address: ")
-	buf.WriteString(addr.EncodeAddress())
+	buf.WriteString(addr.Address())
 	buf.WriteString(newLine)
 	buf.WriteString("Private key: ")
 	buf.WriteString(privWif.String())
@@ -215,7 +203,7 @@ func generateSeed(filename string) error {
 	}
 
 	// Derive the master extended key from the seed.
-	root, err := hdkeychain.NewMaster(seed, &params)
+	root, err := hdkeychain.NewMaster(seed, params)
 	if err != nil {
 		return err
 	}
@@ -253,11 +241,7 @@ func generateSeed(filename string) error {
 	}
 
 	// The address manager needs the public extended key for the account.
-	acctKeyPub, err := acctKeyPriv.Neuter()
-	if err != nil {
-		return fmt.Errorf("failed to convert private key for account 0")
-	}
-
+	acctKeyPub := acctKeyPriv.Neuter()
 	index := uint32(0)  // First address
 	branch := uint32(0) // External
 
@@ -279,7 +263,9 @@ func generateSeed(filename string) error {
 	}
 	defer key.Zero()
 
-	addr, err := key.Address(&params)
+	pk := key.SerializedPubKey()
+	pkHash := dcrutil.Hash160(pk)
+	addr, err := dcrutil.NewAddressPubKeyHash(pkHash, params, dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
@@ -326,7 +312,7 @@ func generateSeed(filename string) error {
 
 	var buf bytes.Buffer
 	buf.WriteString("First address: ")
-	buf.WriteString(addr.EncodeAddress())
+	buf.WriteString(addr.Address())
 	buf.WriteString(newLine)
 	buf.WriteString("Extended public key: ")
 	buf.WriteString(acctKey.String())
@@ -381,7 +367,7 @@ func verifySeed() error {
 	}
 
 	// Derive the master extended key from the seed.
-	root, err := hdkeychain.NewMaster(seed[:], &params)
+	root, err := hdkeychain.NewMaster(seed[:], params)
 	if err != nil {
 		return err
 	}
@@ -419,11 +405,7 @@ func verifySeed() error {
 	}
 
 	// The address manager needs the public extended key for the account.
-	acctKeyPub, err := acctKeyPriv.Neuter()
-	if err != nil {
-		return fmt.Errorf("failed to convert private key for account 0")
-	}
-
+	acctKeyPub := acctKeyPriv.Neuter()
 	index := uint32(0)  // First address
 	branch := uint32(0) // External
 
@@ -445,13 +427,15 @@ func verifySeed() error {
 	}
 	defer key.Zero()
 
-	addr, err := key.Address(&params)
+	pk := key.SerializedPubKey()
+	pkHash := dcrutil.Hash160(pk)
+	addr, err := dcrutil.NewAddressPubKeyHash(pkHash, params, dcrec.STEcdsaSecp256k1)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("First derived address of given seed: \n%v\n",
-		addr.EncodeAddress())
+		addr.Address())
 
 	// Zero the seed array.
 	copy(seed[:], bytes.Repeat([]byte{0x00}, 32))
@@ -505,10 +489,10 @@ func main() {
 			fmt.Println("Error: Only specify one network.")
 			return
 		}
-		params = chaincfg.TestNet3Params
+		params = chaincfg.TestNet3Params()
 	}
 	if *simnet {
-		params = chaincfg.SimNetParams
+		params = chaincfg.SimNetParams()
 	}
 
 	// Single keypair generation.
