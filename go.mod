@@ -1,11 +1,12 @@
 module github.com/decred/dcraddrgen
 
+go 1.13
+
 require (
-	github.com/decred/dcrd/chaincfg v1.3.0
-	github.com/decred/dcrd/dcrec v0.0.0-20181212181811-1a370d38d671
-	github.com/decred/dcrd/dcrec/secp256k1 v1.0.1
-	github.com/decred/dcrd/dcrutil v1.2.0
-	github.com/decred/dcrd/hdkeychain v1.1.1
-	github.com/decred/dcrwallet/walletseed v1.0.1
-	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9 // indirect
+	decred.org/dcrwallet v1.6.0-rc2
+	github.com/decred/dcrd/chaincfg/v3 v3.0.0
+	github.com/decred/dcrd/dcrec v1.0.0
+	github.com/decred/dcrd/dcrec/secp256k1/v3 v3.0.0
+	github.com/decred/dcrd/dcrutil/v3 v3.0.0
+	github.com/decred/dcrd/hdkeychain/v3 v3.0.0
 )
